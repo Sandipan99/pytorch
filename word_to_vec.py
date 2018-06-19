@@ -1,6 +1,6 @@
 # implements word2vec with stochastic gradient descent... without negative sampling/hierarchical softmax..
 
-__author__ = "Sandipan Sikdar" 
+__author__ = "Sandipan Sikdar"
 
 from io import open
 import unicodedata
