@@ -1,4 +1,6 @@
 # implements Graph Convolution Network proposed by Thomas Kiff et. al.
+__author__ = "Sandipan Sikdar"
+
 from io import open
 import random
 import torch
