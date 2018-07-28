@@ -6,3 +6,5 @@ Added word2vec.. specify folder containing all the documents.. content must be p
 Classifying names with 2 layer perceptron and character level RNN
 
 Added graph convolution network proposed by thomas kiff et. al. (implementation of train-test split incomplete)
+
+VAE - variational autoencoder that generates new words using charater-level RNNs
