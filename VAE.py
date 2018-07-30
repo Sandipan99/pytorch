@@ -102,13 +102,9 @@ def train(encoder,decoder,normal_sampler,all_words,all_letters,n_letters,iterati
             norm = normal_sampler.sample(sample_shape=(output_std.size(0),1)).view(1,-1)
             decoder_input = torch.add(output_mean,torch.mul(output_std,norm))
             output,decoder_hidden = decoder(decoder_input, decoder_hidden)
-            #print (output.size())
-            #print (output)
+  
             loss = loss + torch.dist(input_tensor[i],output) - (torch.mul(torch.norm(output_mean),torch.norm(output_mean)) + torch.mul(torch.norm(output_std),torch.norm(output_std))-torch.sum(output_std)-output_std.size(1))*0.5
 
-            #print(loss)
-        #if it%100==0:
-        #print(loss)
         loss.backward(retain_graph=True)
 
         encoder_optimizer.step()
