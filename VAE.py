@@ -22,11 +22,11 @@ def obtainWords(fname): # parse files to obtain words removing punctuation marks
 
 def encodeWord(word,all_letters,n_letters):
     w = [all_letters.find(l) for l in word]
-    word_tensor = torch.zeros(len(w)+1, 1, n_letters+1)
-    for ind,letter in enumerate(w):
-        word_tensor[ind][0][letter] = 1
-    word_tensor[len(w)][0][n_letters] = 1
-    return word_tensor
+    w.append(n_letters)
+    input_tensor = torch.zeros((len(w),1,n_letters+1))
+    for i,v in enumerate(w):
+        input_tensor[i][0][v] = 1
+    return torch.tensor(w),input_tensor
 
 
 class Encoder(nn.Module):
@@ -35,6 +35,7 @@ class Encoder(nn.Module):
 
         self.input_size = input_size
         self.hidden_size = hidden_size
+        self.output_size = output_size
         self.embedding = nn.Embedding(input_size, hidden_size)
         self.gru = nn.GRU(hidden_size, hidden_size)
         self.mean = nn.Linear(hidden_size, output_size)
@@ -45,8 +46,8 @@ class Encoder(nn.Module):
             embedded = self.embedding(input[ei]).view(1,1,-1) # view is same as reshape
             output = embedded
             output, hidden = self.gru(output, hidden)
-        output_mean = mean(output)
-        output_std = std(output)
+        output_mean = self.mean(output)
+        output_std = self.std(output)
         return output_mean,output_std
 
     def initHidden(self):
@@ -81,38 +82,47 @@ def obtainTrainingExample(all_words,all_letters,n_letters):
 def train(encoder,decoder,normal_sampler,all_words,all_letters,n_letters,iterations=5000,learning_rate=0.001):
 
     encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
-    decoder_optimozer = optim.Adam(decoder.parameters(), lr=learning_rate)
+    decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate)
 
-    for i in range(iterations):
+    for it in range(iterations):
         loss = 0
         encoder_optimizer.zero_grad()
         decoder_optimizer.zero_grad()
         encoder_hidden = encoder.initHidden()
         decoder_hidden = decoder.initHidden()
 
-        input_tensor = obtainTrainingExample(all_words,all_letters,n_letters)
-        output_mean, output_std = encoder(input_tensor,encoder_hidden)
+        input,input_tensor = obtainTrainingExample(all_words,all_letters,n_letters)
+        output_mean, output_std = encoder(input,encoder_hidden)
 
         # sample from standard normal with mean 0 and standard deviation 1
+
         output_std = torch.exp(output_std)
 
         for i in range(input_tensor.size(0)):
-            norm = normal_sampler.sample(torch.tensor([output_mean.size(0)])).view(1,-1)
+            norm = normal_sampler.sample(sample_shape=(output_std.size(0),1)).view(1,-1)
             decoder_input = torch.add(output_mean,torch.mul(output_std,norm))
             output,decoder_hidden = decoder(decoder_input, decoder_hidden)
+            #print (output.size())
+            #print (output)
             loss = loss + torch.dist(input_tensor[i],output) - (torch.mul(torch.norm(output_mean),torch.norm(output_mean)) + torch.mul(torch.norm(output_std),torch.norm(output_std))-torch.sum(output_std)-output_std.size(1))*0.5
 
-        loss.backward()
+            #print(loss)
+        #if it%100==0:
+        #print(loss)
+        loss.backward(retain_graph=True)
 
         encoder_optimizer.step()
         decoder_optimizer.step()
 
-def generate(decoder,normal_sampler,all_letters,MAX_LENGTH=5):
+    return output_mean,output_std
+
+
+def generate(decoder,normal_sampler,output_mean,output_std,all_letters,MAX_LENGTH=5):
 
     decoder_hidden = decoder.initHidden()
     word=''
     for i in range(MAX_LENGTH):
-        norm = normal_sampler.sample(torch.tensor([output_mean.size(0)])).view(1,-1)
+        norm = normal_sampler.sample(sample_shape=(output_std.size(0),1)).view(1,-1)
         decoder_input = torch.add(output_mean,torch.mul(output_std,norm))
         output,decoder_hidden = decoder(decoder_input, decoder_hidden)
 
@@ -126,16 +136,16 @@ def generate(decoder,normal_sampler,all_letters,MAX_LENGTH=5):
 
 
 if __name__=="__main__":
-    all_letters = string.ascii_letters
+    all_letters = string.ascii_letters + '0123456789'
     n_letters = len(all_letters)
     all_words = obtainWords("Data/sample_male")
-    normal_sampler = Normal(torch.tensor([0.0]), torch.tensor([1.0]))
+    normal_sampler = torch.distributions.normal.Normal(torch.tensor([0.0]), torch.tensor([1.0]))
     input_size = n_letters+1
     enc_hidden_size,dec_hidden_size = 20,20
     enc_output_size = 10
     encoder = Encoder(n_letters+1,enc_hidden_size,enc_output_size)
     decoder = Decoder(enc_output_size,dec_hidden_size,n_letters+1)
-    train(encoder,decoder,normal_sampler,all_words,all_letters,n_letters)
+    output_mean,output_std = train(encoder,decoder,normal_sampler,all_words,all_letters,n_letters)
 
-    generate(decoder,normal_sampler,all_letters)
+    generate(decoder,normal_sampler,output_mean,output_std,all_letters)
     #print(encodeWord(all_words[8],all_letters,n_letters))
