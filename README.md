@@ -7,4 +7,4 @@ Classifying names with 2 layer perceptron and character level RNN
 
 Added graph convolution network proposed by thomas kiff et. al. (implementation of train-test split incomplete)
 
-VAE - variational autoencoder that generates new words using charater-level RNNs
+VAE - variational autoencoder that generates new words using charater-level RNNs... need to train on larger data to get meaningful results..
