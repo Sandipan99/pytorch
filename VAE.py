@@ -138,7 +138,7 @@ def generate(decoder,normal_sampler,output_mean,output_std,all_letters,MAX_LENGT
 if __name__=="__main__":
     all_letters = string.ascii_letters + '0123456789'
     n_letters = len(all_letters)
-    all_words = obtainWords("Data/sample_male")
+    all_words = obtainWords("sample_review")
     normal_sampler = torch.distributions.normal.Normal(torch.tensor([0.0]), torch.tensor([1.0]))
     input_size = n_letters+1
     enc_hidden_size,dec_hidden_size = 20,20
