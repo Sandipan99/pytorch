@@ -9,6 +9,8 @@ import random
 from torch.distributions import multivariate_normal as mn
 
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 class FeedForward(nn.Module):
     def __init__(self,input_size,hidden_size,output_size):
         super(FeedForward, self).__init__()
@@ -69,6 +71,8 @@ def train(feedforward, sample_lebel_1, sample_lebel_2, epochs=1, learning_rate=0
                     label_tensor = torch.tensor(1,dtype=torch.float32).view(1,1)
                     cnt_samp_1+=1
 
+            input_tensor, label_tensor = input_tensor.to(device),label_tensor.to(device)        
+
             output = feedforward(input_tensor)
 
             loss = torch.abs(output - label_tensor)
@@ -89,6 +93,7 @@ if __name__=="__main__":
     output_size = 1
     sample_lebel_1,sample_lebel_2 = generate_data(10000)
     feedforward = FeedForward(2,10,1)
+    feedforward.to(device)
     train(feedforward,sample_lebel_1,sample_lebel_2)
 
     print(feedforward.i2h.bias)
