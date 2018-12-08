@@ -12,3 +12,5 @@ Added graph convolution network proposed by thomas kiff et. al. (implementation 
 VAE - variational autoencoder that generates new words using charater-level RNNs... need to train on larger data to get meaningful results..
 
 Deep Q network (DQN) added.. Simple 2-layer feed forward network for calcuting the value of the Q-function... Does not work but enough for understanding the technique.
+
+vanilla GAN (incomplete)
