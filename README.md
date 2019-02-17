@@ -16,3 +16,5 @@ Deep Q network (DQN) added.. Simple 2-layer feed forward network for calcuting t
 vanilla GAN added
 
 Transfer learning .... simple classifier trained on synthetic data...add a new layer to perform similar classification task but on a different but related data..
+
+Graph Attention network - incomplete
