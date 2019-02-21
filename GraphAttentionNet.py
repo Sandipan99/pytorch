@@ -9,6 +9,7 @@ from random import shuffle
 
 class GraphAttentionNet(nn.Module):
     def __init__(self, F, F_1, K, output_size):
+	super(GraphAttentionNet,self).__init__()
         self.W = Variable(torch.rand(K, F_1, F), requires_grad=True)
         self.leakyRelu = nn.LeakyReLU(0.1)
         self.softmax = nn.Softmax(dim=1)
